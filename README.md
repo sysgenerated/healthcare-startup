@@ -13,13 +13,13 @@
 
 
 ## Model Changes
-1. Added a new feature to indicate "large" groups in two columns.
+1. Added a two new features to indicate groups with "large" value_counts.
 2. Used xgboost with a light grid search
 
 
 ## Required API Files
 1. `api.py` : flask API python module
-2. `saved_model.py` : serialized model object
+2. `saved_model.joblib` : serialized model object
 3. `Dockerfile` : Docker configuration file
 4. `requirements.txt` : required libraries in Docker image
 
