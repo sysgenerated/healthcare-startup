@@ -13,8 +13,8 @@
 
 
 ## Model Changes
-1. Subclassed ColumnTransformer to create a customer transform
-   1. Added a two new features to indicate groups with "large" value_counts.
+1. Subclassed ColumnTransformer to create a custom transform
+   1. Added two new features to indicate groups with "large" value_counts.
 2. Used xgboost with a light grid search
 
 
