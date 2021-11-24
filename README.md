@@ -1,45 +1,103 @@
-# Data Science Candidate Repo
-For this challenge, you are given a CSV dataset (compressed as a.zip) and a pre-trained linear regression model (model.joblib). This dataset and your objectives reflect the kinds of problems we solve here at Janus.
-
-**No actual patient information is included in this dataset.**
-
-## Objectives
-Your objectives are:
-- Write a Python script that trains a model to predict `paid_amount`
-- Update the provided Flask API script to serve predictions made by your model
-- Write either a Python script or Jupyter notebook that includes your technical analyses and findings
-
-## Dataset
-
-The CSV dataset (train.zip) consisting of the following columns:
-
-| column | dtype | desc | Target? |
-|---|---|---|---|
-| `claim_amount` | FLOAT | Amount billed by the healthcare provider for a patient visit  | No |
-| `claim_id` | STRING  | Unique alpha-numeric identifier for a given claim | No |
-| `drg` | STRING | Diagnosis Related Group code for patient visit  | No |
-| `npi` | STRING | National Provider Identifier code for healthcare provider  | No |
-| `is_medicaid` | BOOLEAN |  Flag indicating whether this is a medicaid charge | No |
-| `is_medicare` | BOOLEAN |  Flag indicating whether this is a medicare charge | No |
-| `paid_amount` | FLOAT | The final amount paid by the insurance provider. | Yes |
-| `payer_name` | STRING |  Name of payer (i.e. insurance provider) | No |
-| `patient_age` | INTEGER | A patient's age in years  | No |
+# Healthcare Startup ML
 
 
-## Evaluation
-We will evaluate your work sample by using your prediction script to make predictions
-against a test set that is hidden from you.
-Please be sure to give careful instructions explaining how to run your code
-to make these predictions. 
+## Overview
 
-You will be evaluated via the following criteria:
-- Readability and cleanliness of your code
-- Ease of running your code to make new predictions
-- Quality of analysis
-- Improvement over provided model
+1. Uploaded data to Google Drive and evaluated in Google Colab
+2. Trained data using `trainer.py`
+3. Modified `api.py` to provide three endpoints:
+   1. http://localhost:8080/ : base URL for sanity checking
+   2. http://localhost:8080/predict : API endpoint accepting json POST data
+   3. http://localhost:8080/upload : webform allowing CSV (or zipped CSV), or json data
+4. Wrapped model/api in a Dockerfile for consistency
 
 
+## Model Changes
+1. Added a new feature to indicate "large" groups in two columns.
+2. Used xgboost with a light grid search
 
-## My Notes
-docker build -t healthcare-startup .
-docker run -t -p 8080:8080 healthcare-startup
+
+## Required API Files
+1. `api.py` : flask API python module
+2. `saved_model.py` : serialized model object
+3. `Dockerfile` : Docker configuration file
+4. `requirements.txt` : required libraries in Docker image
+
+
+## Running the model
+1. Convert training zip to json for use with final API. Code available in `utils.py`.
+
+    ```python
+    import pandas as pd
+    df = pd.read_csv('train.zip')
+    df.to_json('train.json', orient='index')
+    ```
+2. Clone the repo, and build / run the Docker container.
+    
+    ```shell
+    git clone git@github.com:sysgenerated/healthcare-startup.git
+    docker build -t healthcare-startup .
+    docker run -t -p 8080:8080 healthcare-startup
+    ```
+3. POST json data to the API running on port 8080.
+
+    ```shell
+    curl -X POST -H "Content-Type: application/json; charset=utf-8" -d @train.json "http://localhost:8080/predict"
+    ```
+4. Batch predictions can also be performed by uploading a CSV (or zipped CSV), or json file to a webform.
+http://localhost:8080/upload
+
+
+## Example model input
+===============
+
+train.json
+----
+
+```json
+{
+  "0": {
+    "claim_amount": 1040.13,
+    "claim_id": "edec6a2f-f49e-4db3-8828-2e7f44d48864",
+    "drg": 24,
+    "is_medicaid": false,
+    "is_medicare": true,
+    "npi": 8000148798,
+    "paid_amount": 676.08,
+    "patient_age": 51,
+    "payer_name": "zxiVJcrvbPtJtXlX"
+  },
+  "1": {
+    "claim_amount": 1165.98,
+    "claim_id": "3992ef78-1fcb-4423-8d9e-a0fbeb753053",
+    "drg": 64,
+    "is_medicaid": false,
+    "is_medicare": true,
+    "npi": 1557768496,
+    "paid_amount": 749.6,
+    "patient_age": 41,
+    "payer_name": "ZqHRFBrwwWIvGXIp"
+  }
+}
+```
+
+
+## Example model output
+===============
+
+predictions.json
+----
+
+```json
+{
+  "predictions": {
+    "edec6a2f-f49e-4db3-8828-2e7f44d48864": 679.77313,
+    "3992ef78-1fcb-4423-8d9e-a0fbeb753053": 754.2513
+  }
+}
+```
+
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.

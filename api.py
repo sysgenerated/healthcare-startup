@@ -46,7 +46,9 @@ def predict():
     payload = request.json
     df = pd.DataFrame.from_dict(payload, orient='index').set_index('claim_id')
     predictions = model.predict(df)
-    return {'predictions': dict(zip(df.index, predictions))}
+    content = {'predictions': dict(zip(df.index, predictions))}
+    content = str(content).replace("'", "\"")
+    return content
 
 
 # Upload form for batch predictions
